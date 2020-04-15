@@ -8,7 +8,7 @@
  * @version: 0.1
  *
  * Source code for original version available at: https://bitbucket.org/tinusaur/ssd1306xled
- * Source code for ATtiny 0 and 1 series with megaTinyCore
+ * Source code for ATtiny 0 and 1 series with megaTinyCore: https://github.com/SimonMerrett/tinyOLED
  * megaTinyCore available at: https://github.com/SpenceKonde/megaTinyCore
  * 
  * Changelog:
