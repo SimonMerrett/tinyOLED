@@ -5,7 +5,7 @@
  * @author: Neven Boyanov
  * @date: 2020-04-14
  * @author: Simon Merrett
- * @version: 0.1
+ * @version: 0.2
  *
  * Source code for original version available at: https://bitbucket.org/tinusaur/ssd1306xled
  * Source code for ATtiny 0 and 1 series with megaTinyCore: https://github.com/SimonMerrett/tinyOLED
@@ -69,10 +69,14 @@ SSD1306Device::SSD1306Device(void){}
 
 void SSD1306Device::begin(void)
 {
+#ifdef TINYWIRE
+	TinyMegaI2C.init();
+#else 
 	Wire.begin();
-	
-	for (uint8_t i = 0; i < sizeof (ssd1306_init_sequence); i++) {
-		ssd1306_send_command(/*pgm_read_byte(&*/ssd1306_init_sequence[i]/*)*/);
+#endif // TINYWIRE
+	for (uint8_t i = 0; i < sizeof (ssd1306_init_sequence); i++) 
+	{
+		ssd1306_send_command(ssd1306_init_sequence[i]);
 	}
 	clear();
 }
@@ -84,13 +88,21 @@ void SSD1306Device::setFont(uint8_t font)
 }
 
 void SSD1306Device::ssd1306_send_command_start(void) {
-	
+#ifdef TINYWIRE
+	TinyMegaI2C.start(SSD1306, 0);
+	TinyMegaI2C.write(0x00); // write command
+#else 
 	Wire.beginTransmission(SSD1306);
 	Wire.write(0x00);	// write command
+#endif // TINYWIRE	
 }
 
 void SSD1306Device::ssd1306_send_command_stop(void) {
+#ifdef TINYWIRE
+	TinyMegaI2C.stop();
+#else 
 	Wire.endTransmission();
+#endif // TINYWIRE
 }
 
 void SSD1306Device::ssd1306_send_data_byte(uint8_t byte)
@@ -99,34 +111,56 @@ void SSD1306Device::ssd1306_send_data_byte(uint8_t byte)
 	//	ssd1306_send_data_stop();
 	//	ssd1306_send_data_start();
 	//} //**
+#ifdef TINYWIRE
+	TinyMegaI2C.write(byte);
+#else 	
 	Wire.write(byte);
-	
+#endif // TINYWIRE	
 }
 
 void SSD1306Device::ssd1306_send_command(uint8_t command)
 {
 	ssd1306_send_command_start();
+#ifdef TINYWIRE
+	TinyMegaI2C.write(command);
+#else 	
 	Wire.write(command);
+#endif // TINYWIRE
 	ssd1306_send_command_stop();
 }
 
 void SSD1306Device::ssd1306_send_data_start(void)
 {
+#ifdef TINYWIRE
+ 	TinyMegaI2C.start(SSD1306, 0);
+	TinyMegaI2C.write(0x40); // write data
+#else 	
 	Wire.beginTransmission(SSD1306);
 	Wire.write(0x40);	//write data
+#endif // TINYWIRE	
 }
 
 void SSD1306Device::ssd1306_send_data_stop(void)
 {
+#ifdef TINYWIRE
+	TinyMegaI2C.stop();
+#else 	
 	Wire.endTransmission();
+#endif // TINYWIRE
 }
 
 void SSD1306Device::setCursor(uint8_t x, uint8_t y)
 {
 	ssd1306_send_command_start();
+#ifdef TINYWIRE
+	TinyMegaI2C.write(0xb0 + y);
+	TinyMegaI2C.write(((x & 0xf0) >> 4) | 0x10); // | 0x10
+	TinyMegaI2C.write((x & 0x0f) | 0x01); // | 0x01
+#else 	
 	Wire.write(0xb0 + y);
 	Wire.write(((x & 0xf0) >> 4) | 0x10); // | 0x10
 	Wire.write((x & 0x0f) | 0x01); // | 0x01
+#endif // TINYWIRE	
 	ssd1306_send_command_stop();
 	oledX = x;
 	oledY = y;
@@ -188,7 +222,7 @@ size_t SSD1306Device::write(byte c) {
 		ssd1306_send_data_start();
 		for (i= 0; i < 6; i++)
 		{
-			ssd1306_send_data_byte(/*pgm_read_byte(&*/ssd1306xled_font6x8[ci * 6 + i]/*)*/);
+			ssd1306_send_data_byte(ssd1306xled_font6x8[ci * 6 + i]);
 		}
 		ssd1306_send_data_stop();
 		setCursor(oledX+6, oledY);
@@ -208,19 +242,27 @@ size_t SSD1306Device::write(byte c) {
 		ssd1306_send_data_start();
 		for (i = 0; i < 8; i++)
 		{
-			Wire.write(/*pgm_read_byte(&*/ssd1306xled_font8x16[ci * 16 + i]/*)*/);
+#ifdef TINYWIRE
+			TinyMegaI2C.write(ssd1306xled_font8x16[ci * 16 + i]);
+#else 
+			Wire.write(ssd1306xled_font8x16[ci * 16 + i]);
+#endif // TINYWIRE		
 		}
 		ssd1306_send_data_stop();
 		setCursor(oledX, oledY + 1);
 		ssd1306_send_data_start();
 		for (i = 0; i < 8; i++)
 		{
-			Wire.write(/*pgm_read_byte(&*/ssd1306xled_font8x16[ci * 16 + i + 8]/*)*/);
+#ifdef TINYWIRE
+			TinyMegaI2C.write(ssd1306xled_font8x16[ci * 16 + i + 8]);
+#else 			
+			Wire.write(ssd1306xled_font8x16[ci * 16 + i + 8]);
+#endif // TINYWIRE			
 		}
 		ssd1306_send_data_stop();
 		setCursor(oledX + 8, oledY - 1);
 	}
-#endif
+#endif // _nofont_8x16
 	return 1;
 }
 
