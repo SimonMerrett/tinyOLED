@@ -5,13 +5,14 @@
  * @author: Neven Boyanov
  * @date: 2020-04-14
  * @author: Simon Merrett
- * @version: 0.1
+ * @version: 0.2
  *
  * Source code for original version available at: https://bitbucket.org/tinusaur/ssd1306xled
  * Source code for ATtiny 0 and 1 series with megaTinyCore: https://github.com/SimonMerrett/tinyOLED
  * megaTinyCore available at: https://github.com/SpenceKonde/megaTinyCore
  * 
  * Changelog:
+ * - V0.2 use conditional #includes to take advantage of memory-saving TinyMegaI2CMaster library by David Johnson-Davies
  * - V0.1 initial commit for sharing and comment. Main changes from Digistump and Tinusaur:
  *   - removed pgmspace use, as megaTinyCore doesn't need it to save arrays in flash (instead of RAM)
  *   - removed stdint, stdlib, interrupt, util/delay #includes
@@ -20,8 +21,13 @@
  *   - removed Wire.writeAvailabe() from ssd1306_send_data_byte() as not using TinyWire wrapper
  */
 //#include <stdint.h> //**
-#include <Arduino.h>
+ #define TINYWIRE // Comment this out if you want to use the normal Wire library for I2C (more memory used though).
+ #include <Arduino.h>
+ #ifdef TINYWIRE
+ #include <TinyMegaI2CMaster.h>
+ #else
  #include <Wire.h>
+ #endif // TINYWIRE
 // #include <avr/pgmspace.h>
 // #include <avr/interrupt.h>
 // #include <util/delay.h> //**
